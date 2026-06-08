@@ -17,8 +17,10 @@ import net.thenextlvl.portals.notification.Notification;
 import net.thenextlvl.portals.notification.NotificationTrigger;
 import net.thenextlvl.portals.notification.NotificationType;
 import net.thenextlvl.portals.notification.Notifications;
+import net.thenextlvl.portals.particle.PortalParticleEffect;
 import net.thenextlvl.portals.plugin.PortalsPlugin;
 import net.thenextlvl.portals.plugin.model.SimpleNotification;
+import net.thenextlvl.portals.plugin.particle.PortalParticleData;
 import net.thenextlvl.portals.plugin.utils.Debugger;
 import net.thenextlvl.portals.shape.BoundingBox;
 import org.bukkit.World;
@@ -60,6 +62,7 @@ public final class PaperPortal implements Portal {
     private Duration warmup = Duration.ZERO;
 
     private @Nullable EntryAction<?> entryAction = null;
+    private @Nullable PortalParticleEffect particleEffect = null;
     private @Nullable String entryPermission = null;
     private @Nullable String currency = null;
 
@@ -105,6 +108,7 @@ public final class PaperPortal implements Portal {
 
         if (boundingBox.getWorld().equals(getWorld())) {
             this.boundingBox = boundingBox;
+            plugin.particleService().refresh(this);
             return true;
         }
 
@@ -126,6 +130,7 @@ public final class PaperPortal implements Portal {
         this.dataFile = dataFile;
         this.backupFile = backupFile;
         this.boundingBox = boundingBox;
+        plugin.particleService().refresh(this);
         return true;
     }
 
@@ -240,6 +245,31 @@ public final class PaperPortal implements Portal {
     }
 
     @Override
+    public Optional<PortalParticleEffect> getParticleEffect() {
+        return Optional.ofNullable(particleEffect);
+    }
+
+    @Override
+    public boolean setParticleEffect(@Nullable final PortalParticleEffect effect) {
+        if (effect != null) validateParticleEffect(effect);
+        if (Objects.equals(this.particleEffect, effect)) return false;
+        this.particleEffect = effect;
+        if (plugin.portalProvider().hasPortal(this)) plugin.particleService().refresh(this);
+        return true;
+    }
+
+    private void validateParticleEffect(final PortalParticleEffect effect) {
+        Preconditions.checkArgument(effect.count() <= plugin.config().maxParticleCount(),
+                "Particle count cannot be greater than %s", plugin.config().maxParticleCount());
+        Preconditions.checkArgument(effect.intervalTicks() >= plugin.config().minParticleIntervalTicks(),
+                "Particle interval cannot be lower than %s ticks", plugin.config().minParticleIntervalTicks());
+        Preconditions.checkArgument(effect.viewDistance() <= plugin.config().maxParticleViewDistance(),
+                "Particle view distance cannot be greater than %s", plugin.config().maxParticleViewDistance());
+        Preconditions.checkArgument(PortalParticleData.isValid(effect.particle(), effect.data()),
+                "Particle data must be %s", PortalParticleData.typeName(effect.particle()));
+    }
+
+    @Override
     public Path getDataFile() {
         return dataFile;
     }
@@ -294,6 +324,7 @@ public final class PaperPortal implements Portal {
                 ", boundingBox=" + boundingBox +
                 ", cooldown=" + cooldown +
                 ", warmup=" + warmup +
+                ", particleEffect=" + particleEffect +
                 ", entryPermission='" + entryPermission + '\'' +
                 ", currency=" + currency +
                 ", entryCost=" + entryCost +

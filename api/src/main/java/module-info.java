@@ -6,6 +6,7 @@ module net.thenextlvl.portals {
     exports net.thenextlvl.portals.bounds;
     exports net.thenextlvl.portals.event;
     exports net.thenextlvl.portals.notification;
+    exports net.thenextlvl.portals.particle;
     exports net.thenextlvl.portals.selection;
     exports net.thenextlvl.portals.shape;
     exports net.thenextlvl.portals.view;

@@ -53,6 +53,7 @@ public final class WorldListener implements Listener {
     public void onWorldUnload(final WorldUnloadEvent event) {
         plugin.portalProvider().portals.removeIf(portal -> {
             if (portal.getWorld().equals(event.getWorld())) {
+                plugin.particleService().cancel(portal);
                 portal.persist();
                 return true;
             } else return false;
@@ -88,7 +89,10 @@ public final class WorldListener implements Listener {
 
     private @Nullable Portal load(final NBTInputStream inputStream, final World world) throws IOException {
         final var portal = plugin.nbt(world).deserialize(inputStream.readTag(), Portal.class);
-        if (plugin.portalProvider().portals.add(portal)) return portal;
+        if (plugin.portalProvider().portals.add(portal)) {
+            plugin.particleService().refresh(portal);
+            return portal;
+        }
         plugin.getComponentLogger().warn("A portal with the name '{}' is already loaded", portal.getName());
         return null;
     }

@@ -8,6 +8,7 @@ import net.thenextlvl.nbt.tag.CompoundTag;
 import net.thenextlvl.nbt.tag.ListTag;
 import net.thenextlvl.nbt.tag.Tag;
 import net.thenextlvl.portals.action.EntryAction;
+import net.thenextlvl.portals.particle.PortalParticleEffect;
 import net.thenextlvl.portals.plugin.PortalsPlugin;
 import net.thenextlvl.portals.plugin.portal.PaperPortal;
 import net.thenextlvl.portals.shape.BoundingBox;
@@ -38,6 +39,14 @@ public final class PortalAdapter implements TagAdapter<PaperPortal> {
         root.optional("entryPermission").map(tag1 -> context.deserialize(tag1, String.class)).ifPresent(portal::setEntryPermission);
         root.optional("notifications").<ListTag<CompoundTag>>map(Tag::getAsList)
                 .ifPresent(list -> portal.getNotifications().deserialize(list, context));
+        root.optional("particles").ifPresent(tag1 -> {
+            try {
+                final var effect = context.deserialize(tag1, PortalParticleEffect.class);
+                portal.setParticleEffect(effect);
+            } catch (final Exception ignored) {
+                plugin.getComponentLogger().warn("Ignoring invalid particle effect for portal {}", name);
+            }
+        });
         root.optional("warmup").map(tag1 -> context.deserialize(tag1, Duration.class)).ifPresent(portal::setWarmup);
 
         return portal;
@@ -56,6 +65,7 @@ public final class PortalAdapter implements TagAdapter<PaperPortal> {
         tag.put("cooldown", context.serialize(portal.getCooldown()));
         tag.put("entryCost", portal.getEntryCost());
         tag.put("notifications", portal.getNotifications().serialize(context));
+        portal.getParticleEffect().ifPresent(effect -> tag.put("particles", context.serialize(effect)));
         tag.put("warmup", context.serialize(portal.getWarmup()));
 
         return tag.build();

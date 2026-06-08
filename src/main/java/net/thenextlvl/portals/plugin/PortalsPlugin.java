@@ -22,6 +22,7 @@ import net.thenextlvl.portals.action.EntryAction;
 import net.thenextlvl.portals.bounds.BoundsFactory;
 import net.thenextlvl.portals.notification.NotificationTrigger;
 import net.thenextlvl.portals.notification.NotificationType;
+import net.thenextlvl.portals.particle.PortalParticleEffect;
 import net.thenextlvl.portals.plugin.action.SimpleActionTypeRegistry;
 import net.thenextlvl.portals.plugin.action.SimpleActionTypes;
 import net.thenextlvl.portals.plugin.adapters.BoundingBoxAdapter;
@@ -31,6 +32,7 @@ import net.thenextlvl.portals.plugin.adapters.KeyAdapter;
 import net.thenextlvl.portals.plugin.adapters.NotificationTriggerAdapter;
 import net.thenextlvl.portals.plugin.adapters.NotificationTypeAdapter;
 import net.thenextlvl.portals.plugin.adapters.PortalAdapter;
+import net.thenextlvl.portals.plugin.adapters.PortalParticleEffectAdapter;
 import net.thenextlvl.portals.plugin.adapters.SoundAdapter;
 import net.thenextlvl.portals.plugin.adapters.TitleTimesAdapter;
 import net.thenextlvl.portals.plugin.adapters.UnparsedTitleAdapter;
@@ -45,6 +47,7 @@ import net.thenextlvl.portals.plugin.listeners.PortalListener;
 import net.thenextlvl.portals.plugin.listeners.WorldListener;
 import net.thenextlvl.portals.plugin.listeners.WorldMigrationListener;
 import net.thenextlvl.portals.plugin.model.SimplePortalConfig;
+import net.thenextlvl.portals.plugin.particle.PortalParticleService;
 import net.thenextlvl.portals.plugin.portal.PaperPortal;
 import net.thenextlvl.portals.plugin.portal.PaperPortalProvider;
 import net.thenextlvl.portals.plugin.selections.WorldEditSelectionProvider;
@@ -73,6 +76,7 @@ public final class PortalsPlugin extends JavaPlugin {
     private final PluginVersionChecker versionChecker = new PluginVersionChecker(this);
 
     private final PaperPortalProvider portalProvider = new PaperPortalProvider(this);
+    private final PortalParticleService particleService = new PortalParticleService(this);
     private EconomyProvider economyProvider = new EmptyEconomyProvider(this);
 
     private final Metrics metrics = new Metrics(this, 27514);
@@ -83,7 +87,7 @@ public final class PortalsPlugin extends JavaPlugin {
 
     private final FileIO<SimplePortalConfig> portalConfig = new GsonFile<>(
             getDataPath().resolve("config.json"),
-            new SimplePortalConfig(false, true, false, true, 0.3),
+            new SimplePortalConfig(false, true, false, true, 0.3, true, 5, 64, 32, true, 64),
             SimplePortalConfig.class
     ).validate().save();
 
@@ -135,6 +139,7 @@ public final class PortalsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        particleService.cancelAll();
         portalProvider.forEachPortal(Portal::persist);
         fastStats.shutdown();
         metrics.shutdown();
@@ -154,6 +159,11 @@ public final class PortalsPlugin extends JavaPlugin {
     @Contract(pure = true)
     public EconomyProvider economyProvider() {
         return economyProvider;
+    }
+
+    @Contract(pure = true)
+    public PortalParticleService particleService() {
+        return particleService;
     }
 
     @Contract(pure = true)
@@ -177,6 +187,7 @@ public final class PortalsPlugin extends JavaPlugin {
                 .registerTypeHierarchyAdapter(NotificationTrigger.class, new NotificationTriggerAdapter())
                 .registerTypeHierarchyAdapter(NotificationType.class, new NotificationTypeAdapter())
                 .registerTypeHierarchyAdapter(Sound.class, new SoundAdapter())
+                .registerTypeHierarchyAdapter(PortalParticleEffect.class, new PortalParticleEffectAdapter(world))
                 .registerTypeHierarchyAdapter(Sound.Source.class, new EnumAdapter<>(Sound.Source.class))
                 .registerTypeHierarchyAdapter(UnparsedTitle.class, new UnparsedTitleAdapter())
                 .registerTypeHierarchyAdapter(Title.Times.class, new TitleTimesAdapter())

@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.thenextlvl.portals.action.EntryAction;
 import net.thenextlvl.portals.notification.Notifications;
+import net.thenextlvl.portals.particle.PortalParticleEffect;
 import net.thenextlvl.portals.shape.BoundingBox;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -252,6 +253,25 @@ public interface Portal extends PortalLike {
      */
     @Contract(pure = true)
     Notifications getNotifications();
+
+    /**
+     * Gets the particle effect of the portal.
+     *
+     * @return the particle effect
+     * @since 1.8.0
+     */
+    @Contract(pure = true)
+    Optional<PortalParticleEffect> getParticleEffect();
+
+    /**
+     * Sets the particle effect of the portal.
+     *
+     * @param effect the particle effect, or {@code null} to disable particles
+     * @return {@code true} if the particle effect was changed, {@code false} otherwise
+     * @since 1.8.0
+     */
+    @Contract(mutates = "this")
+    boolean setParticleEffect(@Nullable PortalParticleEffect effect);
 
     /**
      * Gets the data file of the portal.

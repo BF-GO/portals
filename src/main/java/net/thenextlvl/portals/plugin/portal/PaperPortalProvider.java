@@ -77,6 +77,7 @@ public final class PaperPortalProvider implements PortalProvider {
     @Override
     public boolean deletePortal(final Portal portal) {
         try {
+            plugin.particleService().cancel(portal);
             if (!portals.remove(portal)) return false;
             Files.deleteIfExists(portal.getDataFile());
             Files.deleteIfExists(portal.getBackupFile());

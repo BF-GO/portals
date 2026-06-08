@@ -104,6 +104,7 @@ paper {
         register("portals.command.notification.list") { children = listOf("portals.command.notification") }
         register("portals.command.notification.remove") { children = listOf("portals.command.notification") }
         register("portals.command.notification.set") { children = listOf("portals.command.notification") }
+        register("portals.command.particle") { children = listOf("portals.command.portal") }
         register("portals.command.permission") { children = listOf("portals.command.portal") }
         register("portals.command.redefine") { children = listOf("portals.command.portal") }
         register("portals.command.teleport") { children = listOf("portals.command.portal") }

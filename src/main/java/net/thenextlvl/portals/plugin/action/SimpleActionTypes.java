@@ -69,7 +69,8 @@ public final class SimpleActionTypes implements ActionTypes {
     });
 
     private final ActionType<PortalLike> teleportPortal = ActionType.create("teleport_portal", PortalLike.class, (entity, portal, target) -> {
-        return target.getPortal().map(targetPortal -> {
+        // A world reload or portal recreation can replace the original target object.
+        return plugin.portalProvider().getPortal(target.getName()).map(targetPortal -> {
             var sourceBB = portal.getBoundingBox();
             var targetBB = targetPortal.getBoundingBox();
             var from = entity.getLocation();
@@ -199,4 +200,3 @@ public final class SimpleActionTypes implements ActionTypes {
         return transfer;
     }
 }
-

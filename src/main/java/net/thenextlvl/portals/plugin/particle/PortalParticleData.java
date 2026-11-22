@@ -32,6 +32,25 @@ public final class PortalParticleData {
         return null;
     }
 
+    public static @Nullable Object relocate(final @Nullable Object data, final Location from, final Location to) {
+        if (data instanceof Particle.Trail trail) {
+            return new Particle.Trail(relocate(trail.getTarget(), from, to), trail.getColor(), trail.getDuration());
+        }
+        if (data instanceof Vibration vibration
+                && vibration.getDestination() instanceof Vibration.Destination.BlockDestination destination) {
+            return new Vibration(new Vibration.Destination.BlockDestination(relocate(destination.getLocation(), from, to)),
+                    vibration.getArrivalTime());
+        }
+        return data;
+    }
+
+    private static Location relocate(final Location target, final Location from, final Location to) {
+        // Keep the target's offset from the portal center, including when changing worlds.
+        final var relocated = target.clone();
+        relocated.setWorld(to.getWorld());
+        return relocated.add(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
+    }
+
     public static boolean isValid(final Particle particle, final @Nullable Object data) {
         final var type = particle.getDataType();
         if (type.equals(Void.class)) return data == null;

@@ -106,29 +106,31 @@ public final class PaperPortal implements Portal {
     public boolean setBoundingBox(final BoundingBox boundingBox) {
         if (this.boundingBox.equals(boundingBox)) return false;
 
-        if (boundingBox.getWorld().equals(getWorld())) {
-            this.boundingBox = boundingBox;
-            plugin.particleService().refresh(this);
-            return true;
+        if (!boundingBox.getWorld().equals(getWorld())) {
+            final var target = plugin.portalProvider().getDataFolder(boundingBox.getWorld());
+            final var dataFile = target.resolve(getDataFile().getFileName());
+            final var backupFile = target.resolve(getBackupFile().getFileName());
+
+            try {
+                Files.createDirectories(target);
+                if (Files.exists(getDataFile())) Files.move(getDataFile(), dataFile, REPLACE_EXISTING);
+                if (Files.exists(getBackupFile())) Files.move(getBackupFile(), backupFile, REPLACE_EXISTING);
+            } catch (final IOException e) {
+                plugin.getComponentLogger().error("Failed to move portal data files for {}", getName(), e);
+                plugin.getComponentLogger().error("Please look for similar issues or report this on GitHub: {}", ISSUES);
+                PortalsPlugin.ERROR_TRACKER.trackError(e);
+                return false;
+            }
+
+            this.dataFile = dataFile;
+            this.backupFile = backupFile;
         }
 
-        final var target = plugin.portalProvider().getDataFolder(boundingBox.getWorld());
-        final var dataFile = target.resolve(getDataFile().getFileName());
-        final var backupFile = target.resolve(getBackupFile().getFileName());
-
-        try {
-            Files.createDirectories(target);
-            if (Files.exists(getDataFile())) Files.move(getDataFile(), dataFile, REPLACE_EXISTING);
-            if (Files.exists(getBackupFile())) Files.move(getBackupFile(), backupFile, REPLACE_EXISTING);
-        } catch (final IOException e) {
-            plugin.getComponentLogger().error("Failed to move portal data files for {}", getName(), e);
-            plugin.getComponentLogger().error("Please look for similar issues or report this on GitHub: {}", ISSUES);
-            PortalsPlugin.ERROR_TRACKER.trackError(e);
-            return false;
+        if (particleEffect != null) {
+            final var data = PortalParticleData.relocate(particleEffect.data(), this.boundingBox.getCenter(), boundingBox.getCenter());
+            if (data != particleEffect.data()) particleEffect = particleEffect.withData(data);
         }
 
-        this.dataFile = dataFile;
-        this.backupFile = backupFile;
         this.boundingBox = boundingBox;
         plugin.particleService().refresh(this);
         return true;

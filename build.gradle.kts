@@ -51,6 +51,15 @@ dependencies {
 
     implementation("dev.faststats.metrics:bukkit:0.23.0")
     implementation("org.bstats:bstats-bukkit:3.2.1")
+
+    testImplementation("io.papermc.paper:paper-api:26.1.2.build.+")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.mockito:mockito-core:5.20.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.shadowJar {
